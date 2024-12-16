@@ -1,0 +1,29 @@
+.home {
+    text-align: center;
+    background-color: #222; /* Fundo escuro para criar contraste */
+    color: #fff; /* Texto branco para melhor legibilidade */
+    min-height: 100vh; /* Ocupa toda a altura da viewport */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .frase {
+    font-family: 'Courier New', monospace; /* Fonte com aspecto de código, sugerindo algo misterioso */
+    font-size: 3rem;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Cria um efeito de profundidade */
+    animation: blink 1s infinite;
+  }
+  
+  @keyframes blink {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
