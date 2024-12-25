@@ -1,11 +1,11 @@
 import styles from "./style.module.scss";
+import chrono from "./chrono.jpeg";
 
 function Home() {
   return (
     <div className={styles.home}>
-      <h1 className={styles.frase}>
-        A vida nos cruzou por um instante, mas marcou para sempre.
-      </h1>
+      <img src={chrono} alt="Chrono logo" />
+      <h1 className={styles.frase}>Um instante que marca para sempre.</h1>
     </div>
   );
 }
