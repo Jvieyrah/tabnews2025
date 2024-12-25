@@ -1,21 +1,16 @@
 import styles from "./style.module.scss";
-import chrono from "./chrono.jpeg";
+import Clock from "./components/clock"
 
 function Home() {
   return (
     <div className={styles.home}>
-      <img src={chrono} alt="Chrono logo" />
+      <img src="/images/chrono.jpeg" className={styles.logo} alt="Chrono logo" />
       <h1 className={styles.frase}>Um instante que marca para sempre.</h1>
+      <div className={styles.background}>
+        <Clock />
+      </div>
     </div>
   );
-}
-
-function teste() {
-  console.log("teste");
-}
-
-function test2() {
-  console.log("teste2");
 }
 
 export default Home;
