@@ -1,29 +1,31 @@
 import database from "infra/database";
 
 async function status(request, response) {
-  const dbReturn = await database.query(`
-    SELECT 
-        version() AS version,
-        (SELECT setting::int FROM pg_settings WHERE name = 'max_connections') AS max_connections,
-        COUNT(*) AS current_connections
-    FROM pg_stat_activity;
-  `);
+  const versionResult = await database.query(`SHOW server_version;`);
+  const maxConnectionsResult = await database.query(`SHOW max_connections;`);
+  const version = versionResult.rows[0].server_version;
+  const maxConnections = parseInt(
+    maxConnectionsResult.rows[0].max_connections,
+    10,
+  );
 
-  const [
-    {
-      version,
-      max_connections: maxConnections,
-      current_connections: currentConnections,
-    },
-  ] = dbReturn.rows;
+  const dbName = process.env.POSTGRES_DB;
+  const opennedConnectionsResult = await database.query({
+    text: `SELECT count(*)::int FROM pg_stat_activity WHERE datname = $1 ;`,
+    values: [dbName],
+  });
+  const opennedConnectionsValue = opennedConnectionsResult.rows[0].count;
 
-  console.log(version, maxConnections, currentConnections);
   const updatedAt = new Date().toISOString();
   response.status(200).json({
     updated_at: updatedAt,
-    db_version: version,
-    maximum_connections: maxConnections,
-    connections_in_use: Number(currentConnections),
+    dependencies: {
+      database: {
+        version: version,
+        max_connections: maxConnections,
+        openned_connections: opennedConnectionsValue,
+      },
+    },
   });
 }
 
