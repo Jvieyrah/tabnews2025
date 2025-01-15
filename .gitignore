@@ -3,4 +3,3 @@ node_modules
 .env.production
 .env.test
 infra/ca-certificate.crt
-infra/migrations
