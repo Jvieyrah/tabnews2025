@@ -23,6 +23,7 @@ export default async function migrations(request, response) {
       ...migrationsObject,
       dryRun: false,
     });
+
     await dbClient.end();
 
     if (migratedMigrations.length > 0) {
