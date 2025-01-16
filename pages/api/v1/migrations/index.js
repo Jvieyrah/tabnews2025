@@ -3,33 +3,45 @@ import database from "infra/database";
 import { join } from "node:path";
 
 export default async function migrations(request, response) {
-  const dbClient = await database.getNewClient();
-  const migrationsObject = {
-    dbClient: dbClient,
-    dryRun: true,
-    dir: join("infra", "migrations"),
-    direction: "up",
-    verbose: true,
-    migrationsTable: "pgmigrations",
-  };
+  const allowedMethods = ["GET", "POST"];
 
-  if (request.method === "GET") {
-    const pendingMigrations = await migrationRunner(migrationsObject);
-    await dbClient.end();
-    return response.status(200).json(pendingMigrations);
+  if (!allowedMethods.includes(request.method)) {
+    return response.status(405).end();
   }
-  if (request.method === "POST") {
-    const migratedMigrations = await migrationRunner({
-      ...migrationsObject,
-      dryRun: false,
-    });
 
-    await dbClient.end();
+  let dbClient;
+  try {
+    dbClient = await database.getNewClient();
+    const migrationsObject = {
+      dbClient: dbClient,
+      dryRun: true,
+      dir: join("infra", "migrations"),
+      direction: "up",
+      verbose: true,
+      migrationsTable: "pgmigrations",
+    };
 
-    if (migratedMigrations.length > 0) {
-      return response.status(201).json(migratedMigrations);
+    if (request.method === "GET") {
+      const pendingMigrations = await migrationRunner(migrationsObject);
+      return response.status(200).json(pendingMigrations);
     }
-    return response.status(200).json(migratedMigrations);
+    if (request.method === "POST") {
+      const migratedMigrations = await migrationRunner({
+        ...migrationsObject,
+        dryRun: false,
+      });
+
+      if (migratedMigrations.length > 0) {
+        return response.status(201).json(migratedMigrations);
+      }
+      return response.status(200).json(migratedMigrations);
+    }
+  } catch (error) {
+    console.error("problemas com o DB: ", error);
+    response.status(500).json({ error: "Internal Server Error" });
+  } finally {
+    if (dbClient) {
+      await dbClient.end();
+    }
   }
-  return response.status(405).end(); // Method Not Allowed
 }
