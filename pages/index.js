@@ -1,10 +1,11 @@
 import styles from "./style.module.scss";
 import Clock from "./components/clock";
+import Image from "next/image";
 
 function Home() {
   return (
     <div className={styles.home}>
-      <img
+      <Image
         src="/images/chrono.jpeg"
         className={styles.logo}
         alt="Chrono logo"
