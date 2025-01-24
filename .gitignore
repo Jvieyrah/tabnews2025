@@ -1,5 +1,5 @@
 .next
-node_modules
+*node_modules/*
 .env.production
 .env.test
 infra/ca-certificate.crt
