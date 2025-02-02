@@ -1,4 +1,4 @@
-import database from "infra/database";
+import database from "../../../../../infra/database";
 import orquestrator from "tests/orquestrator.js";
 
 beforeAll(async () => {
