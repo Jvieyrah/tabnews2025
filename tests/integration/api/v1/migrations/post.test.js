@@ -3,7 +3,7 @@ import orquestrator from "tests/orquestrator.js";
 
 beforeAll(async () => {
   await orquestrator.waitForAllServices();
-  await database.query("drop schema public cascade; create schema public");
+  await orquestrator.clearDatabase();
 });
 
 describe("'POST' to 'api/v1/migrations'", () => {
