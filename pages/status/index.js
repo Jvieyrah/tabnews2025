@@ -7,10 +7,6 @@ async function fetchApi(key) {
 }
 
 function Status() {
-  const response = useSwr("/api/v1/status", fetchApi, {
-    refreshInterval: 2000,
-    dedumpingInterval: 2000,
-  });
   return (
     <>
       <h1>Status</h1>
@@ -33,10 +29,10 @@ function UpdatedAt() {
   let oppenedConnectionsText = loadText;
 
   if (!isLoading && data) {
-    let updatedAtText = new Date(data.updated_at).toLocaleString("pr-BR");
-    let dbVersionText = data.dependencies.database.version;
-    let maxConnectionsText = data.dependencies.database.max_connections;
-    let oppenedConnectionsText = data.dependencies.database.openned_connections;
+    updatedAtText = new Date(data.updated_at).toLocaleString("pr-BR");
+    dbVersionText = data.dependencies.database.version;
+    maxConnectionsText = data.dependencies.database.max_connections;
+    oppenedConnectionsText = data.dependencies.database.openned_connections;
   }
   return (
     <div>
