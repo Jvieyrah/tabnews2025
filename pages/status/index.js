@@ -6,12 +6,12 @@ async function fetchApi(key) {
   return responseBody;
 }
 
-function Status() {
+export default function StatusPage() {
   return (
-    <>
+    <div>
       <h1>Status</h1>
       <UpdatedAt />
-    </>
+    </div>
   );
 }
 
@@ -43,5 +43,3 @@ function UpdatedAt() {
     </div>
   );
 }
-
-export default Status;
