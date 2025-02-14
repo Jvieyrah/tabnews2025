@@ -25,7 +25,6 @@ try {
 } catch (error) {
   if (error instanceof ReferenceError) {
     console.log(error);
-    return;
   }
   if (error instanceof ValidationError) {
     console.log(error);
