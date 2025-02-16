@@ -1,17 +1,36 @@
+import { createRouter } from "next-connect";
 import migrationRunner from "node-pg-migrate";
 import database from "../../../../infra/database";
 import { resolve } from "node:path";
+import {
+  InternalServerError,
+  MethodNotAllowedError,
+} from "../../../../infra/errors";
 
-export default async function migrations(request, response) {
-  const allowedMethods = ["GET", "POST"];
+const router = createRouter();
 
-  if (!allowedMethods.includes(request.method)) {
-    const errorMessage = {
-      error: `Method ${request.method} not allowed`,
-    };
-    return response.status(405).json(errorMessage);
-  }
+router.get(migrationsHandler).post(migrationsHandler);
 
+export default router.handler({
+  onNoMatch: onNoMatchHandler,
+  onError: onErrorHandler,
+});
+
+function onNoMatchHandler(request, response) {
+  const publicErrorObject = new MethodNotAllowedError();
+  response.status(publicErrorObject.statusCode).json(publicErrorObject);
+}
+
+function onErrorHandler(error, request, response) {
+  console.log(`\n Erro dentro do catch no next-connect de migrations`);
+  const publicErrorObject = new InternalServerError({
+    cause: error,
+  });
+  console.log(publicErrorObject);
+  response.status(publicErrorObject.statusCode).json(publicErrorObject);
+}
+
+async function migrationsHandler(request, response) {
   let dbClient;
   try {
     dbClient = await database.getNewClient();
@@ -39,9 +58,6 @@ export default async function migrations(request, response) {
       }
       return response.status(200).json(migratedMigrations);
     }
-  } catch (error) {
-    console.error("problemas com o DB: ", error);
-    response.status(500).json({ error: "Internal Server Error" });
   } finally {
     if (dbClient) {
       await dbClient.end();

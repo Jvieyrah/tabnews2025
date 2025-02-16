@@ -24,6 +24,13 @@ describe("'Get' to 'api/v1/migrations'", () => {
     });
 
     test("'DEL/PUT/PATCH' to 'api/v1/migrations' should return 405", async () => {
+      const MethodNotAllowedError = {
+        name: "MethodNotAllowedError",
+        message: "Método não permitido para este endpoint",
+        action: "Verifique se o método HTTP é valido para este endpoint",
+        status_code: 405,
+      };
+
       const responseDel = await fetch(
         "http://localhost:3000/api/v1/migrations",
         {
@@ -46,9 +53,9 @@ describe("'Get' to 'api/v1/migrations'", () => {
       expect(responseDel.status).toBe(405);
       expect(responsePatch.status).toBe(405);
       expect(responsePut.status).toBe(405);
-      expect(Array.isArray(responseDel)).toBe(false);
-      expect(Array.isArray(responsePatch)).toBe(false);
-      expect(Array.isArray(responsePut)).toBe(false);
+      expect(await responseDel.json()).toEqual(MethodNotAllowedError);
+      expect(await responsePatch.json()).toEqual(MethodNotAllowedError);
+      expect(await responsePut.json()).toEqual(MethodNotAllowedError);
       const pgmigrations = await database.query(
         "select count(*) from pgmigrations;",
       );
