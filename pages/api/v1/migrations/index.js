@@ -2,62 +2,54 @@ import { createRouter } from "next-connect";
 import migrationRunner from "node-pg-migrate";
 import database from "../../../../infra/database";
 import { resolve } from "node:path";
-import {
-  InternalServerError,
-  MethodNotAllowedError,
-} from "../../../../infra/errors";
+import controller from "../../../../infra/controller";
 
 const router = createRouter();
 
-router.get(migrationsHandler).post(migrationsHandler);
+router.get(getHandler).post(postHandler);
 
-export default router.handler({
-  onNoMatch: onNoMatchHandler,
-  onError: onErrorHandler,
-});
+export default router.handler(controller.errorHandlers);
 
-function onNoMatchHandler(request, response) {
-  const publicErrorObject = new MethodNotAllowedError();
-  response.status(publicErrorObject.statusCode).json(publicErrorObject);
-}
+const migrationsObject = {
+  dryRun: true,
+  dir: resolve("infra", "migrations"),
+  direction: "up",
+  verbose: true,
+  migrationsTable: "pgmigrations",
+};
 
-function onErrorHandler(error, request, response) {
-  console.log(`\n Erro dentro do catch no next-connect de migrations`);
-  const publicErrorObject = new InternalServerError({
-    cause: error,
-  });
-  console.log(publicErrorObject);
-  response.status(publicErrorObject.statusCode).json(publicErrorObject);
-}
-
-async function migrationsHandler(request, response) {
+async function getHandler(request, response) {
   let dbClient;
   try {
     dbClient = await database.getNewClient();
-    const migrationsObject = {
-      dbClient: dbClient,
-      dryRun: true,
-      dir: resolve("infra", "migrations"),
-      direction: "up",
-      verbose: true,
-      migrationsTable: "pgmigrations",
-    };
 
-    if (request.method === "GET") {
-      const pendingMigrations = await migrationRunner(migrationsObject);
-      return response.status(200).json(pendingMigrations);
+    const pendingMigrations = await migrationRunner({
+      ...migrationsObject,
+      dbClient,
+    });
+    return response.status(200).json(pendingMigrations);
+  } finally {
+    if (dbClient) {
+      await dbClient.end();
     }
-    if (request.method === "POST") {
-      const migratedMigrations = await migrationRunner({
-        ...migrationsObject,
-        dryRun: false,
-      });
+  }
+}
 
-      if (migratedMigrations.length > 0) {
-        return response.status(201).json(migratedMigrations);
-      }
-      return response.status(200).json(migratedMigrations);
+async function postHandler(request, response) {
+  let dbClient;
+  try {
+    dbClient = await database.getNewClient();
+
+    const migratedMigrations = await migrationRunner({
+      ...migrationsObject,
+      dryRun: false,
+      dbClient,
+    });
+
+    if (migratedMigrations.length > 0) {
+      return response.status(201).json(migratedMigrations);
     }
+    return response.status(200).json(migratedMigrations);
   } finally {
     if (dbClient) {
       await dbClient.end();
