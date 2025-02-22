@@ -7,6 +7,7 @@ function Home() {
     <div className={styles.home}>
       <Image
         src="/images/chrono.jpeg"
+        width={230}
         className={styles.logo}
         alt="Chrono logo"
       />
