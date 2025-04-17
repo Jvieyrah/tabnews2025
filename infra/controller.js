@@ -1,4 +1,9 @@
-import { InternalServerError, MethodNotAllowedError } from "./errors";
+import { workAsyncStorageInstance } from "next/dist/server/app-render/work-async-storage-instance";
+import {
+  InternalServerError,
+  MethodNotAllowedError,
+  ValidationError,
+} from "./errors";
 
 function onNoMatchHandler(request, response) {
   const publicErrorObject = new MethodNotAllowedError();
@@ -6,7 +11,10 @@ function onNoMatchHandler(request, response) {
 }
 
 function onErrorHandler(error, request, response) {
-  console.log(`\n Erro dentro do catch no next-connect de migrations`);
+  if (error instanceof ValidationError) {
+    return response.status(error.statusCode).json(error);
+  }
+
   const publicErrorObject = new InternalServerError({
     statusCode: error.statusCode,
     cause: error,

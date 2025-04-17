@@ -1,5 +1,6 @@
 import orquestrator from "tests/orquestrator.js";
 import { version as uuidVersion } from "uuid";
+import status from "../../../../../pages/api/v1/status";
 
 beforeAll(async () => {
   await orquestrator.waitForAllServices();
@@ -39,6 +40,86 @@ describe("'POST' to 'api/v1/users'", () => {
       expect(uuidVersion(responseBody.id)).toBe(4); // uud ver 4 é o padrão criado pela func gen_random_uuid() no postgres implementada na migration 'create user'
       expect(Date.parse(responseBody.created_at)).not.toBeNaN();
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+    });
+  });
+
+  test("With duplicared email data", async () => {
+    const userDataImput = {
+      username: "jvieyrah2",
+      email: "email2@email.com",
+      password: "senha2",
+    };
+
+    const userDataImput2 = {
+      username: "jvieyrah3",
+      email: "Email2@email.com",
+      password: "senha3",
+    };
+
+    await fetch("http://localhost:3000/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userDataImput),
+    });
+
+    const response2 = await fetch("http://localhost:3000/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userDataImput2),
+    });
+
+    const responseBody = await response2.json();
+
+    expect(response2.status).toBe(400);
+    expect(responseBody).toEqual({
+      name: "ValidationError",
+      message: "Um dos dados informados já está sendo ultilizado",
+      action: "Ultilize outros dados para realizar o trabalho",
+      status_code: 400,
+    });
+  });
+
+  test("With duplicared username data", async () => {
+    const userDataImput = {
+      username: "jvieyrah",
+      email: "email@email.com",
+      password: "senha2",
+    };
+
+    const userDataImput2 = {
+      username: "JVieyrah",
+      email: "Email2@email.com",
+      password: "senha3",
+    };
+
+    await fetch("http://localhost:3000/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userDataImput),
+    });
+
+    const response2 = await fetch("http://localhost:3000/api/v1/users", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(userDataImput2),
+    });
+
+    const responseBody = await response2.json();
+
+    expect(response2.status).toBe(400);
+    expect(responseBody).toEqual({
+      name: "ValidationError",
+      message: "Um dos dados informados já está sendo ultilizado",
+      action: "Ultilize outros dados para realizar o trabalho",
+      status_code: 400,
     });
   });
 });
