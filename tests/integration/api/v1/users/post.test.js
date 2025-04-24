@@ -1,6 +1,5 @@
 import orquestrator from "tests/orquestrator.js";
 import { version as uuidVersion } from "uuid";
-import status from "../../../../../pages/api/v1/status";
 
 beforeAll(async () => {
   await orquestrator.waitForAllServices();

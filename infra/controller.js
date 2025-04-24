@@ -3,6 +3,7 @@ import {
   InternalServerError,
   MethodNotAllowedError,
   ValidationError,
+  NotFoundError,
 } from "./errors";
 
 function onNoMatchHandler(request, response) {
@@ -11,7 +12,7 @@ function onNoMatchHandler(request, response) {
 }
 
 function onErrorHandler(error, request, response) {
-  if (error instanceof ValidationError) {
+  if (error instanceof ValidationError || error instanceof NotFoundError) {
     return response.status(error.statusCode).json(error);
   }
 
