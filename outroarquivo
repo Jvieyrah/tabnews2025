@@ -1,5 +1,0 @@
-POSTGRES_HOST='ep-rapid-brook-a5iyrfbw.us-east-2.aws.neon.tech'
-POSTGRES_PORT=5432
-POSTGRES_DB='chronofeed'
-POSTGRES_USER='chronofeed_owner'
-POSTGRES_PASSWORD='AWE7JGt0LqUh'
