@@ -41,35 +41,15 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
     test("With duplicared 'username' data", async () => {
       const user1DataInput = {
         username: "user1",
-        email: "user1@email.com",
-        password: "senha2",
       };
 
-      const user1Response = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user1DataInput),
-      });
-
-      expect(user1Response.status).toBe(201);
+      await orquestrator.createUser(user1DataInput);
 
       const user2DataInput = {
         username: "userX",
-        email: "userX@email.com",
-        password: "senh2a",
       };
 
-      const user2Response = await fetch("http://localhost:3000/api/v1/users/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user2DataInput),
-      });
-
-      expect(user2Response.status).toBe(201);
+      await orquestrator.createUser(user2DataInput);
 
       const missUpdatedUser = await fetch(
         "http://localhost:3000/api/v1/users/userX",
@@ -100,39 +80,19 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
 
     test("With duplicared 'email' data", async () => {
       const user1DataInput = {
-        username: "userC",
         email: "userC@email.com",
-        password: "senha2",
       };
 
-      const user1Response = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user1DataInput),
-      });
-
-      expect(user1Response.status).toBe(201);
+      await orquestrator.createUser(user1DataInput);
 
       const user2DataInput = {
-        username: "userD",
         email: "userD@email.com",
-        password: "senh2a",
       };
 
-      const user2Response = await fetch("http://localhost:3000/api/v1/users/", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user2DataInput),
-      });
-
-      expect(user2Response.status).toBe(201);
+      const createdUser2 = await orquestrator.createUser(user2DataInput);
 
       const missUpdatedUser = await fetch(
-        "http://localhost:3000/api/v1/users/userD",
+        `http://localhost:3000/api/v1/users/${createdUser2.username}`,
         {
           method: "PATCH",
           headers: {
@@ -161,19 +121,9 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
     test("With unique 'username' data", async () => {
       const user1DataInput = {
         username: "uniqueuser1",
-        email: "uniqueuser1@email.com",
-        password: "senha2",
       };
 
-      const user1Response = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user1DataInput),
-      });
-
-      expect(user1Response.status).toBe(201);
+      await orquestrator.createUser(user1DataInput);
 
       const UpdatedUser = await fetch(
         "http://localhost:3000/api/v1/users/uniqueuser1",
@@ -206,23 +156,13 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
 
     test("With unique 'email' data", async () => {
       const user1DataInput = {
-        username: "uniqueemailuser1",
         email: "uniqueemailuser1@email.com",
-        password: "senha2",
       };
 
-      const user1Response = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user1DataInput),
-      });
-
-      expect(user1Response.status).toBe(201);
+      const user = await orquestrator.createUser(user1DataInput);
 
       const UpdatedUser = await fetch(
-        "http://localhost:3000/api/v1/users/uniqueemailuser1",
+        `http://localhost:3000/api/v1/users/${user.username}`,
         {
           method: "PATCH",
           headers: {
@@ -251,24 +191,10 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
     });
 
     test("With new 'password' data", async () => {
-      const user1DataInput = {
-        username: "passworduser1",
-        email: "passwordser1@email.com",
-        password: "senha2",
-      };
-
-      const user1Response = await fetch("http://localhost:3000/api/v1/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(user1DataInput),
-      });
-
-      expect(user1Response.status).toBe(201);
+      const createdUser = await orquestrator.createUser({});
 
       const UpdatedUser = await fetch(
-        "http://localhost:3000/api/v1/users/passworduser1",
+        `http://localhost:3000/api/v1/users/${createdUser.username}`,
         {
           method: "PATCH",
           headers: {
@@ -282,20 +208,11 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
 
       const updatedUserResponse = await UpdatedUser.json();
 
-      expect(updatedUserResponse).toEqual({
-        id: updatedUserResponse.id,
-        username: "passworduser1",
-        email: "passwordser1@email.com",
-        password: updatedUserResponse.password,
-        created_at: updatedUserResponse.created_at,
-        updated_at: updatedUserResponse.updated_at,
-      });
-
       expect(
         updatedUserResponse.updated_at > updatedUserResponse.created_at,
       ).toBe(true);
 
-      const userInDatabase = await user.findOneByUsername("passworduser1");
+      const userInDatabase = await user.findOneByUsername(createdUser.username);
       const correctPasswordMatch = await password.compare(
         "senha3",
         userInDatabase.password,
@@ -303,7 +220,7 @@ describe("'PATCH' to 'api/v1/users/[username]'", () => {
       expect(correctPasswordMatch).toBe(true);
 
       const inCorrectPasswordMatch = await password.compare(
-        "senha2",
+        createdUser.password,
         userInDatabase.password,
       );
       expect(inCorrectPasswordMatch).toBe(false);
