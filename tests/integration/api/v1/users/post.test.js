@@ -1,5 +1,7 @@
 import orquestrator from "tests/orquestrator.js";
 import { version as uuidVersion } from "uuid";
+import user from "../../../../../models/user.js";
+import password from "../../../../../models/password.js";
 
 beforeAll(async () => {
   await orquestrator.waitForAllServices();
@@ -31,7 +33,7 @@ describe("'POST' to 'api/v1/users'", () => {
         id: responseBody.id,
         username: "jvieyrah",
         email: "email@email.com",
-        password: "senha",
+        password: responseBody.password,
         created_at: responseBody.created_at,
         updated_at: responseBody.updated_at,
       });
@@ -39,6 +41,19 @@ describe("'POST' to 'api/v1/users'", () => {
       expect(uuidVersion(responseBody.id)).toBe(4); // uud ver 4 é o padrão criado pela func gen_random_uuid() no postgres implementada na migration 'create user'
       expect(Date.parse(responseBody.created_at)).not.toBeNaN();
       expect(Date.parse(responseBody.updated_at)).not.toBeNaN();
+
+      const userInDatabase = await user.findOneByUsername("jvieyrah");
+      const correctPasswordMatch = await password.compare(
+        userDataImput.password,
+        userInDatabase.password,
+      );
+      expect(correctPasswordMatch).toBe(true);
+
+      const inCorrectPasswordMatch = await password.compare(
+        "any word",
+        userInDatabase.password,
+      );
+      expect(inCorrectPasswordMatch).toBe(false);
     });
   });
 
