@@ -1,3 +1,3 @@
-# tabnews2025
+# clone-tabnews
 
-implementation of tabnews.com.br for 2025 as a display of tecnology skills.
+Implementação do https://www.tabnews.com.br para o https://curso.dev

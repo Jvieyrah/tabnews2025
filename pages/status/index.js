@@ -1,6 +1,6 @@
-import useSwr from "swr";
+import useSWR from "swr";
 
-async function fetchApi(key) {
+async function fetchAPI(key) {
   const response = await fetch(key);
   const responseBody = await response.json();
   return responseBody;
@@ -8,38 +8,53 @@ async function fetchApi(key) {
 
 export default function StatusPage() {
   return (
-    <div>
+    <>
       <h1>Status</h1>
       <UpdatedAt />
-    </div>
+      <DatabaseStatus />
+    </>
   );
 }
 
 function UpdatedAt() {
-  const { data, isLoading } = useSwr("/api/v1/status", fetchApi, {
+  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
     refreshInterval: 2000,
-    dedumpingInterval: 2000,
   });
 
-  const loadText = "carregando ...";
-
-  let updatedAtText = loadText;
-  let dbVersionText = loadText;
-  let maxConnectionsText = loadText;
-  let oppenedConnectionsText = loadText;
+  let updatedAtText = "Carregando...";
 
   if (!isLoading && data) {
-    updatedAtText = new Date(data.updated_at).toLocaleString("pr-BR");
-    dbVersionText = data.dependencies.database.version;
-    maxConnectionsText = data.dependencies.database.max_connections;
-    oppenedConnectionsText = data.dependencies.database.openned_connections;
+    updatedAtText = new Date(data.updated_at).toLocaleString("pt-BR");
   }
+
+  return <div>Última atualização: {updatedAtText}</div>;
+}
+
+function DatabaseStatus() {
+  const { isLoading, data } = useSWR("/api/v1/status", fetchAPI, {
+    refreshInterval: 2000,
+  });
+
+  let databaseStatusInformation = "Carregando...";
+
+  if (!isLoading && data) {
+    databaseStatusInformation = (
+      <>
+        <div>Versão: {data.dependencies.database.version}</div>
+        <div>
+          Conexões abertas: {data.dependencies.database.opened_connections}
+        </div>
+        <div>
+          Conexões máximas: {data.dependencies.database.max_connections}
+        </div>
+      </>
+    );
+  }
+
   return (
-    <div>
-      <p>Ùltima atualização {updatedAtText}</p>
-      <p>Versão do postgress {dbVersionText}</p>
-      <p>Maximo de conexôes {maxConnectionsText}</p>
-      <p>Conexões abertas {oppenedConnectionsText}</p>
-    </div>
+    <>
+      <h2>Database</h2>
+      <div>{databaseStatusInformation}</div>
+    </>
   );
 }

@@ -1,46 +1,53 @@
-import user from "./user";
-import password from "./password";
-import { NotFoundError, UnauthorizedError } from "../infra/errors";
+import user from "models/user.js";
+import password from "models/password.js";
+import { NotFoundError, UnauthorizedError } from "infra/errors.js";
 
 async function getAuthenticatedUser(providedEmail, providedPassword) {
   try {
-    const storedUser = await findOneByEmail(providedEmail);
+    const storedUser = await findUserByEmail(providedEmail);
     await validatePassword(providedPassword, storedUser.password);
 
     return storedUser;
   } catch (error) {
     if (error instanceof UnauthorizedError) {
       throw new UnauthorizedError({
-        message: "Datos de autenticação não conferem",
-        action: "Verifique se os dados enviados estão corretos",
+        message: "Dados de autenticação não conferem.",
+        action: "Verifique se os dados enviados estão corretos.",
       });
     }
+
     throw error;
   }
 
-  async function findOneByEmail(email) {
+  async function findUserByEmail(providedEmail) {
+    let storedUser;
+
     try {
-      return await user.findOneByEmail(email);
+      storedUser = await user.findOneByEmail(providedEmail);
     } catch (error) {
       if (error instanceof NotFoundError) {
         throw new UnauthorizedError({
-          message: "Datos de autenticação não conferem",
-          action: "Verifique se os dados enviados estão corretos",
+          message: "Email não confere.",
+          action: "Verifique se este dado está correto.",
         });
       }
+
       throw error;
     }
+
+    return storedUser;
   }
-  async function validatePassword(providedPassword, returnedPassword) {
+
+  async function validatePassword(providedPassword, storedPassword) {
     const correctPasswordMatch = await password.compare(
       providedPassword,
-      returnedPassword,
+      storedPassword,
     );
 
     if (!correctPasswordMatch) {
       throw new UnauthorizedError({
-        message: "Datos de autenticação não conferem",
-        action: "Verifique se os dados enviados estão corretos",
+        message: "Senha não confere.",
+        action: "Verifique se este dado está correto.",
       });
     }
   }
